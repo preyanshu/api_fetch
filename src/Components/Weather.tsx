@@ -1,63 +1,70 @@
 import React, { useState, useEffect } from 'react';
 
-const WeatherApp = () => {
-  const [weatherData, setWeatherData] = useState(null);
-  const [city, setCity] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+interface WeatherData {
+  name: string;
+  main: {
+    temp: number;
+  };
+  weather: {
+    description: string;
+  }[];
+}
+
+const WeatherApp: React.FC = () => {
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [city, setCity] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-        setLoading(true);
-        try {
-          const apiKey = '11fdc8a5303dbdd5b77d869aa752e3da'; // not using .env for the assignment purpose only
-          
-          // Get latitude and longitude of the city by its name
-          const geoApiUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=5&appid=${apiKey}`;
-          const geoResponse = await fetch(geoApiUrl);
-          if (!geoResponse.ok) {
-            throw new Error('City not found');
-          }
-          const [cityData] = await geoResponse.json();
-          const { lat, lon } = cityData;
-          
-          // Now, use latitude and longitude to get weather data
-          const weatherApiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
-          const weatherResponse = await fetch(weatherApiUrl);
-          if (!weatherResponse.ok) {
-            throw new Error('Weather data not available for this city');
-          }
-          const weatherData = await weatherResponse.json();
-          setWeatherData(weatherData);
-          setLoading(false);
-        } catch (error) {
-          setError(error.message);
-          setLoading(false);
+      setLoading(true);
+      try {
+        const apiKey = '11fdc8a5303dbdd5b77d869aa752e3da'; // not using .env for the assignment purpose only
+
+        // Get latitude and longitude of the city by its name
+        const geoApiUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=5&appid=${apiKey}`;
+        const geoResponse = await fetch(geoApiUrl);
+        if (!geoResponse.ok) {
+          throw new Error('City not found');
         }
-      };
-      
+        const [cityData] = await geoResponse.json();
+        const { lat, lon } = cityData;
+
+        // Now, use latitude and longitude to get weather data
+        const weatherApiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+        const weatherResponse = await fetch(weatherApiUrl);
+        if (!weatherResponse.ok) {
+          throw new Error('Weather data not available for this city');
+        }
+        const weatherData: WeatherData = await weatherResponse.json();
+        setWeatherData(weatherData);
+        setLoading(false);
+      } catch (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    };
 
     if (city) {
       fetchData();
     }
-
   }, [city]);
-  useEffect(()=>{
+
+  useEffect(() => {
     setError(null);
+  }, [error]);
 
-},[error])
-
-  const handleInputChange = (event) => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setCity(event.target.value);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (city.trim()) {
-      setWeatherData(null); 
-      setError(null); 
+      setWeatherData(null);
+      setError(null);
     }
-   
   };
 
   return (
@@ -74,8 +81,7 @@ const WeatherApp = () => {
       </form>
       {loading && <p>Loading...</p>}
       {error && <p>{error}</p>}
-       
-      
+
       {weatherData && (
         <div>
           <h2>{weatherData.name}</h2>
